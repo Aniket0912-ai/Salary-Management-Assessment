@@ -1,0 +1,106 @@
+<main class="shell">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">ACME</p>
+      <h1>Salary Management</h1>
+    </div>
+    <div class="topbar-actions">
+      <div class="segmented-control" aria-label="Date range selector">
+        <button
+          *ngFor="let period of periods"
+          type="button"
+          class="segment"
+          [class.active]="selectedPeriod === period"
+          (click)="setPeriod(period)"
+        >
+          {{ period }}
+        </button>
+      </div>
+      <button mat-raised-button color="primary">Export report</button>
+    </div>
+  </header>
+
+  <section class="stats-grid">
+    <article class="stat-card" *ngFor="let stat of statCards">
+      <div class="stat-header">
+        <span>{{ stat.label }}</span>
+        <span class="trend" [class.up]="stat.trend === 'up'" [class.down]="stat.trend === 'down'">
+          {{ stat.delta }}
+        </span>
+      </div>
+      <strong>{{ stat.value }}</strong>
+    </article>
+  </section>
+
+  <section class="content-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Department payroll</h2>
+        <span class="muted">{{ selectedPeriod }}</span>
+      </div>
+      <ul class="rows">
+        <li *ngFor="let dept of departmentStats">
+          <div>
+            <span class="name">{{ dept.name }}</span>
+            <small>{{ dept.headcount }} employees</small>
+          </div>
+          <div class="amounts">
+            <strong>{{ dept.payroll }}</strong>
+            <span>{{ dept.share }}</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Salary bands</h2>
+        <span class="muted">Distribution</span>
+      </div>
+      <div class="band-chart">
+        <div class="band-row" *ngFor="let band of salaryBands">
+          <div class="band-meta">
+            <span>{{ band.label }}</span>
+            <strong>{{ band.employees }}</strong>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" [style.width.%]="(band.employees / 10000) * 100" [style.background]="band.color"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel wide">
+      <div class="panel-header">
+        <h2>Compensation insights</h2>
+        <span class="muted">AI-assisted summary</span>
+      </div>
+      <div class="insight-grid">
+        <div>
+          <p>
+            HR managers can filter by country, department, designation, and salary band before reviewing compensation changes,
+            history, and organizational trends without downloading all data into the browser.
+          </p>
+        </div>
+        <div class="quick-actions">
+          <button *ngFor="let action of quickActions" type="button" class="action-pill">
+            {{ action }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel watchlist-panel">
+      <div class="panel-header">
+        <h2>Watchlist</h2>
+        <span class="muted">Priority items</span>
+      </div>
+      <ul class="watchlist">
+        <li *ngFor="let item of watchlist">
+          <span class="dot"></span>
+          <span>{{ item }}</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+</main>
