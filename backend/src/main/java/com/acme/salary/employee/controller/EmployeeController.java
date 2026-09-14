@@ -1,5 +1,6 @@
 package com.acme.salary.employee.controller;
 
+import com.acme.salary.employee.dto.CreateEmployeeRequest;
 import com.acme.salary.employee.dto.EmployeeDto;
 import com.acme.salary.employee.service.EmployeeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,9 +31,21 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeService.searchEmployees(search, country, department, pageable));
     }
 
+    @PostMapping
+    @Operation(summary = "Create a new employee")
+    public ResponseEntity<EmployeeDto> createEmployee(@RequestBody CreateEmployeeRequest request) {
+        return ResponseEntity.ok(employeeService.createEmployee(request));
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get employee by id")
     public ResponseEntity<EmployeeDto> getEmployee(@PathVariable Long id) {
         return ResponseEntity.ok(employeeService.getEmployee(id));
+    }
+
+    @GetMapping("/dashboard-summary")
+    @Operation(summary = "Get dashboard summary metrics")
+    public ResponseEntity<com.acme.salary.employee.dto.DashboardSummaryDto> getDashboardSummary() {
+        return ResponseEntity.ok(employeeService.getDashboardSummary());
     }
 }

@@ -16,91 +16,205 @@
           {{ period }}
         </button>
       </div>
-      <button mat-raised-button color="primary">Export report</button>
+      <button mat-raised-button color="primary" (click)="exportReport()">Export report</button>
     </div>
   </header>
 
-  <section class="stats-grid">
-    <article class="stat-card" *ngFor="let stat of statCards">
-      <div class="stat-header">
-        <span>{{ stat.label }}</span>
-        <span class="trend" [class.up]="stat.trend === 'up'" [class.down]="stat.trend === 'down'">
-          {{ stat.delta }}
-        </span>
+  <nav class="tab-bar" aria-label="Main navigation">
+    <button type="button" [class.active]="selectedTab === 'dashboard'" (click)="openTab('dashboard')">Dashboard</button>
+    <button type="button" [class.active]="selectedTab === 'employees'" (click)="openTab('employees')">Employees</button>
+    <button type="button" [class.active]="selectedTab === 'add'" (click)="openTab('add')">Add Employee</button>
+    <button type="button" [class.active]="selectedTab === 'details'" (click)="openTab('details')">Employee Details</button>
+  </nav>
+
+  <div class="status-bar" *ngIf="statusMessage">{{ statusMessage }}</div>
+
+  <section *ngIf="selectedTab === 'dashboard'">
+    <section class="stats-grid">
+      <article class="stat-card" *ngFor="let stat of statCards">
+        <div class="stat-header">
+          <span>{{ stat.label }}</span>
+          <span class="trend" [class.up]="stat.trend === 'up'" [class.down]="stat.trend === 'down'">
+            {{ stat.delta }}
+          </span>
+        </div>
+        <strong>{{ stat.value }}</strong>
+      </article>
+    </section>
+
+    <section class="content-grid">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Department payroll</h2>
+          <span class="muted">{{ selectedPeriod }}</span>
+        </div>
+        <ul class="rows">
+          <li *ngFor="let dept of departmentStats">
+            <div>
+              <span class="name">{{ dept.name }}</span>
+              <small>{{ dept.headcount }} employees</small>
+            </div>
+            <div class="amounts">
+              <strong>{{ dept.payroll }}</strong>
+              <span>{{ dept.share }}</span>
+            </div>
+          </li>
+        </ul>
       </div>
-      <strong>{{ stat.value }}</strong>
-    </article>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Salary bands</h2>
+          <span class="muted">Distribution</span>
+        </div>
+        <div class="band-chart">
+          <div class="band-row" *ngFor="let band of salaryBands">
+            <div class="band-meta">
+              <span>{{ band.label }}</span>
+              <strong>{{ band.employees }}</strong>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" [style.width.%]="(band.employees / 10000) * 100" [style.background]="band.color"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel wide">
+        <div class="panel-header">
+          <h2>Compensation insights</h2>
+          <span class="muted">AI-assisted summary</span>
+        </div>
+        <div class="insight-grid">
+          <div>
+            <p>
+              HR managers can filter by country, department, designation, and salary band before reviewing compensation changes,
+              history, and organizational trends without downloading all data into the browser.
+            </p>
+          </div>
+          <div class="quick-actions">
+            <button *ngFor="let action of quickActions" type="button" class="action-pill" (click)="handleQuickAction(action)">
+              {{ action }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel watchlist-panel">
+        <div class="panel-header">
+          <h2>Watchlist</h2>
+          <span class="muted">Priority items</span>
+        </div>
+        <ul class="watchlist">
+          <li *ngFor="let item of watchlist">
+            <span class="dot"></span>
+            <span>{{ item }}</span>
+          </li>
+        </ul>
+      </div>
+    </section>
   </section>
 
-  <section class="content-grid">
-    <div class="panel">
-      <div class="panel-header">
-        <h2>Department payroll</h2>
-        <span class="muted">{{ selectedPeriod }}</span>
+  <section *ngIf="selectedTab === 'employees'" class="module-panel">
+    <div class="module-header">
+      <h2>Employee roster</h2>
+      <button type="button" class="primary-button" (click)="exportReport()">Download records</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Country</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let employee of employees">
+            <td>{{ employee.id }}</td>
+            <td>{{ employee.employeeCode }}</td>
+            <td>{{ employee.firstName }} {{ employee.lastName }}</td>
+            <td>{{ employee.department }}</td>
+            <td>{{ employee.country }}</td>
+            <td>{{ employee.email }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section *ngIf="selectedTab === 'add'" class="module-panel">
+    <div class="module-header">
+      <h2>Add employee</h2>
+    </div>
+    <form class="employee-form" (ngSubmit)="submitEmployee()">
+      <div class="field-grid">
+        <label>
+          First name
+          <input type="text" [(ngModel)]="employeeForm.firstName" name="firstName" required>
+        </label>
+        <label>
+          Last name
+          <input type="text" [(ngModel)]="employeeForm.lastName" name="lastName" required>
+        </label>
+        <label>
+          Email
+          <input type="email" [(ngModel)]="employeeForm.email" name="email" required>
+        </label>
+        <label>
+          Employee code
+          <input type="text" [(ngModel)]="employeeForm.employeeCode" name="employeeCode" placeholder="EMP-1001">
+        </label>
+        <label>
+          Country
+          <input type="text" [(ngModel)]="employeeForm.country" name="country" required>
+        </label>
+        <label>
+          Department
+          <input type="text" [(ngModel)]="employeeForm.department" name="department" required>
+        </label>
+        <label>
+          Designation
+          <input type="text" [(ngModel)]="employeeForm.designation" name="designation" required>
+        </label>
+        <label>
+          Joining date
+          <input type="date" [(ngModel)]="employeeForm.joiningDate" name="joiningDate" required>
+        </label>
+        <label>
+          Currency
+          <input type="text" [(ngModel)]="employeeForm.currency" name="currency" required>
+        </label>
       </div>
-      <ul class="rows">
-        <li *ngFor="let dept of departmentStats">
-          <div>
-            <span class="name">{{ dept.name }}</span>
-            <small>{{ dept.headcount }} employees</small>
-          </div>
-          <div class="amounts">
-            <strong>{{ dept.payroll }}</strong>
-            <span>{{ dept.share }}</span>
-          </div>
-        </li>
-      </ul>
+      <button type="submit" class="primary-button">Save employee</button>
+    </form>
+  </section>
+
+  <section *ngIf="selectedTab === 'details'" class="module-panel">
+    <div class="module-header">
+      <h2>Employee details</h2>
+    </div>
+    <div class="detail-search">
+      <input type="number" [(ngModel)]="employeeIdInput" placeholder="Enter employee ID" min="1">
+      <button type="button" class="primary-button" (click)="fetchEmployeeDetails()">Fetch details</button>
     </div>
 
-    <div class="panel">
-      <div class="panel-header">
-        <h2>Salary bands</h2>
-        <span class="muted">Distribution</span>
-      </div>
-      <div class="band-chart">
-        <div class="band-row" *ngFor="let band of salaryBands">
-          <div class="band-meta">
-            <span>{{ band.label }}</span>
-            <strong>{{ band.employees }}</strong>
-          </div>
-          <div class="bar-track">
-            <div class="bar-fill" [style.width.%]="(band.employees / 10000) * 100" [style.background]="band.color"></div>
-          </div>
-        </div>
-      </div>
+    <div *ngIf="employeeDetails" class="employee-detail-card">
+      <div class="detail-row"><span>ID</span><strong>{{ employeeDetails.id }}</strong></div>
+      <div class="detail-row"><span>Employee code</span><strong>{{ employeeDetails.employeeCode }}</strong></div>
+      <div class="detail-row"><span>Name</span><strong>{{ employeeDetails.firstName }} {{ employeeDetails.lastName }}</strong></div>
+      <div class="detail-row"><span>Email</span><strong>{{ employeeDetails.email }}</strong></div>
+      <div class="detail-row"><span>Department</span><strong>{{ employeeDetails.department }}</strong></div>
+      <div class="detail-row"><span>Country</span><strong>{{ employeeDetails.country }}</strong></div>
+      <div class="detail-row"><span>Designation</span><strong>{{ employeeDetails.designation }}</strong></div>
+      <div class="detail-row"><span>Joining date</span><strong>{{ employeeDetails.joiningDate }}</strong></div>
+      <div class="detail-row"><span>Currency</span><strong>{{ employeeDetails.currency }}</strong></div>
     </div>
-
-    <div class="panel wide">
-      <div class="panel-header">
-        <h2>Compensation insights</h2>
-        <span class="muted">AI-assisted summary</span>
-      </div>
-      <div class="insight-grid">
-        <div>
-          <p>
-            HR managers can filter by country, department, designation, and salary band before reviewing compensation changes,
-            history, and organizational trends without downloading all data into the browser.
-          </p>
-        </div>
-        <div class="quick-actions">
-          <button *ngFor="let action of quickActions" type="button" class="action-pill">
-            {{ action }}
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel watchlist-panel">
-      <div class="panel-header">
-        <h2>Watchlist</h2>
-        <span class="muted">Priority items</span>
-      </div>
-      <ul class="watchlist">
-        <li *ngFor="let item of watchlist">
-          <span class="dot"></span>
-          <span>{{ item }}</span>
-        </li>
-      </ul>
+    <div *ngIf="!employeeDetails && statusMessage && statusMessage.includes('not found')" class="empty-state">
+      No employee found for that ID.
     </div>
   </section>
 </main>

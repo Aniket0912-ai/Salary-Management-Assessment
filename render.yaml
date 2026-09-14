@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: acme-backend
+    env: docker
+    dockerfilePath: backend/Dockerfile
+    branch: main
+    plan: free
+    envVars:
+      - key: FRONTEND_ORIGINS
+        value: "https://your-frontend-url"
+
+  - type: static_site
+    name: acme-frontend
+    env: node
+    buildCommand: "cd frontend && npm ci && npm run build:prod"
+    publishPath: "frontend/dist/frontend"
+    branch: main
+    plan: free
+    envVars:
+      - key: BACKEND_URL
+        value: "https://your-backend-url"
